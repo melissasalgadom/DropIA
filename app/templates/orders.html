@@ -1,0 +1,243 @@
+{% extends "index.html" %}
+
+{% block title %}Pedidos{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>Gestión de Pedidos</h2>
+    </div>
+    <div class="col-md-4 text-end">
+        <button class="btn btn-success" id="process-selected-btn" disabled>
+            <i class="bi bi-check2-all"></i> Procesar Seleccionados
+        </button>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-white">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="Buscar pedidos..." id="order-search">
+                            <button class="btn btn-outline-secondary" type="button">Buscar</button>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <select class="form-select" id="order-filter">
+                            <option value="all" selected>Todos los pedidos</option>
+                            <option value="pending">Pendientes</option>
+                            <option value="processing">En proceso</option>
+                            <option value="shipped">Enviados</option>
+                            <option value="delivered">Entregados</option>
+                            <option value="cancelled">Cancelados</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="select-all-orders">
+                                    </div>
+                                </th>
+                                <th>ID</th>
+                                <th>Cliente</th>
+                                <th>Fecha</th>
+                                <th>Total</th>
+                                <th>Estado</th>
+                                <th>Plataforma</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if orders %}
+                                {% for order in orders %}
+                                <tr>
+                                    <td>
+                                        <div class="form-check">
+                                            <input class="form-check-input order-checkbox" type="checkbox" value="{{ order.id }}">
+                                        </div>
+                                    </td>
+                                    <td>{{ order.external_id }}</td>
+                                    <td>{{ order.customer_name }}</td>
+                                    <td>{{ order.created_at }}</td>
+                                    <td>€{{ order.total_amount }}</td>
+                                    <td>
+                                        {% if order.status == 'pending' %}
+                                        <span class="badge bg-warning">Pendiente</span>
+                                        {% elif order.status == 'processing' %}
+                                        <span class="badge bg-info">En proceso</span>
+                                        {% elif order.status == 'shipped' %}
+                                        <span class="badge bg-primary">Enviado</span>
+                                        {% elif order.status == 'delivered' %}
+                                        <span class="badge bg-success">Entregado</span>
+                                        {% elif order.status == 'cancelled' %}
+                                        <span class="badge bg-danger">Cancelado</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ order.platform }}</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="/order/{{ order.id }}" class="btn btn-outline-primary">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a href="/order/process/{{ order.id }}" class="btn btn-outline-success">
+                                                <i class="bi bi-check2"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#cancelModal{{ order.id }}">
+                                                <i class="bi bi-x-lg"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="8" class="text-center py-4">
+                                        <div class="py-5">
+                                            <h4>No hay pedidos registrados</h4>
+                                            <p class="text-muted">Los pedidos aparecerán aquí cuando los clientes realicen compras</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% if orders and orders|length > 10 %}
+            <div class="card-footer">
+                <nav>
+                    <ul class="pagination justify-content-center mb-0">
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1">Anterior</a>
+                        </li>
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                        <li class="page-item">
+                            <a class="page-link" href="#">Siguiente</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0">Estadísticas de Pedidos</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4">
+                        <h3>{{ orders|length if orders else 0 }}</h3>
+                        <p class="text-muted">Total de Pedidos</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h3>{{ orders|selectattr('status', 'equalto', 'pending')|list|length if orders else 0 }}</h3>
+                        <p class="text-muted">Pedidos Pendientes</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h3>€{% if orders %}{{ orders|sum(attribute='total_amount')|round(2) }}{% else %}0.00{% endif %}</h3>
+                        <p class="text-muted">Ventas Totales</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-warning">
+                <h5 class="card-title mb-0">Automatización <span class="automation-badge">IA</span></h5>
+            </div>
+            <div class="card-body">
+                <p>Configura la automatización para procesar pedidos automáticamente:</p>
+                <form action="/schedule_task" method="post">
+                    <input type="hidden" name="task_type" value="process_orders">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-8">
+                            <select class="form-select" name="frequency">
+                                <option value="hourly">Cada hora</option>
+                                <option value="daily" selected>Diariamente</option>
+                                <option value="weekly">Semanalmente</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-warning w-100">Programar</button>
+                        </div>
+                    </div>
+                </form>
+                <div class="alert alert-info mt-3 mb-0">
+                    <small><i class="bi bi-info-circle"></i> La automatización procesará los pedidos pendientes según la frecuencia seleccionada.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modales de cancelación para cada pedido -->
+{% if orders %}
+    {% for order in orders %}
+    <div class="modal fade" id="cancelModal{{ order.id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar Cancelación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    ¿Estás seguro de que deseas cancelar el pedido #{{ order.external_id }}?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <a href="/order/cancel/{{ order.id }}" class="btn btn-danger">Cancelar Pedido</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+{% endif %}
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Gestionar la selección de pedidos
+        const selectAllCheckbox = document.getElementById('select-all-orders');
+        const orderCheckboxes = document.querySelectorAll('.order-checkbox');
+        const processSelectedBtn = document.getElementById('process-selected-btn');
+        
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', function() {
+                const isChecked = this.checked;
+                orderCheckboxes.forEach(checkbox => {
+                    checkbox.checked = isChecked;
+                });
+                updateProcessButton();
+            });
+        }
+        
+        orderCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', updateProcessButton);
+        });
+        
+        function updateProcessButton() {
+            const selectedCount = document.querySelectorAll('.order-checkbox:checked').length;
+            processSelectedBtn.disabled = selectedCount === 0;
+            processSelectedBtn.textContent = selectedCount > 0 
+                ? `Procesar Seleccionados (${selectedCount})` 
+                : 'Procesar Seleccionados';
+        }
+    });
+</script>
+{% endblock %}

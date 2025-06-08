@@ -1,0 +1,106 @@
+{% extends "index.html" %}
+
+{% block title %}Configuración{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Configuración de la Aplicación</h5>
+            </div>
+            <div class="card-body">
+                <form action="/save_settings" method="post">
+                    <div class="settings-section">
+                        <h4>Credenciales de Plataformas</h4>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="dsers_username" class="form-label">Usuario de DSers</label>
+                                <input type="text" class="form-control" id="dsers_username" name="dsers_username" placeholder="Tu nombre de usuario">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="dsers_password" class="form-label">Contraseña de DSers</label>
+                                <input type="password" class="form-control" id="dsers_password" name="dsers_password" placeholder="Tu contraseña">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h4>Configuración de Precios</h4>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="price_margin" class="form-label">Margen de Beneficio (%)</label>
+                                <input type="number" class="form-control" id="price_margin" name="price_margin" value="40" min="1" max="500">
+                                <div class="form-text">Porcentaje que se añadirá al costo del producto para determinar el precio de venta.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h4>Automatización <span class="automation-badge">IA</span></h4>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="update_frequency" class="form-label">Frecuencia de Actualización</label>
+                                <select class="form-select" id="update_frequency" name="update_frequency">
+                                    <option value="hourly">Cada hora</option>
+                                    <option value="daily" selected>Diariamente</option>
+                                    <option value="weekly">Semanalmente</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> Nota: La ejecución de tareas programadas periódicas puede estar temporalmente deshabilitada debido a limitaciones de recursos del sistema. En este caso, deberás ejecutar las tareas manualmente cuando sea necesario.
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h4>Programar Tareas Automatizadas</h4>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="task_type" class="form-label">Tipo de Tarea</label>
+                                <select class="form-select" id="task_type" name="task_type">
+                                    <option value="update_prices">Actualizar Precios</option>
+                                    <option value="import_products">Importar Productos</option>
+                                    <option value="process_orders">Procesar Pedidos</option>
+                                    <option value="analyze_market">Analizar Mercado</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="frequency" class="form-label">Frecuencia</label>
+                                <select class="form-select" id="frequency" name="frequency">
+                                    <option value="hourly">Cada hora</option>
+                                    <option value="daily" selected>Diariamente</option>
+                                    <option value="weekly">Semanalmente</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">&nbsp;</label>
+                                <button type="submit" formaction="/schedule_task" class="btn btn-success d-block">Programar Tarea</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary">Guardar Configuración</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="card-title mb-0">Tareas Programadas</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    No hay tareas programadas actualmente. Utiliza el formulario de arriba para programar tareas automatizadas.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
